@@ -12,12 +12,8 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
 client = Client(TWILIO_SID, TWILIO_AUTH_TOKEN)
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
 redis_client = redis.StrictRedis(host='localhost', port=6379, db=0, decode_responses=True)
-
 AUTH_STEPS = ["last_4_digits", "dob", "last_name", "statement_period"]
-
-# Expected Authentication Values
 CORRECT_AUTH_DETAILS = {
     "last_4_digits": "1234",
     "dob": "9.9.99",
@@ -118,14 +114,14 @@ def whatsapp_reply():
     # Fetch session details
     session_key = f"user:{sender_number}"
     auth_step = redis_client.hget(session_key, "auth_step")
-    # Handle language change request
+    
     if user_intent == "LANGUAGE_CHANGE":
         new_language = detect_requested_language(user_message)
         if new_language == "UNKNOWN":
             response_text = "I'm sorry, I couldn't understand the language you requested. Can you please specify the language?"
         else:
             redis_client.hset(session_key, "language", new_language)
-            # Get the last asked question and translate it into the new language
+            
             if auth_step:
                 previous_question = f"Could you please provide your {auth_step.replace('_', ' ')}?"
                 translated_question = translate_text(previous_question, new_language)
